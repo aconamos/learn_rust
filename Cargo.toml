@@ -1,0 +1,15 @@
+[package]
+name = "learn_rust"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "guessing_game"
+path = "src/guessing_game.rs"
+
+[[bin]]
+name = "ch3_challenges"
+path = "src/ch3_challenges.rs"
+
+[dependencies]
+rand = "0.8.5"
