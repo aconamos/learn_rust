@@ -1,11 +1,53 @@
 use std::io;
 
-fn main() {
-    do_fib();
-    do_temp();
+mod challenges {
+    pub mod ch3;
 }
 
-fn do_temp() {
+use challenges::ch3;
+
+fn main() {
+    let mut input = String::new();
+
+    println!(
+        "Enter a challenge function: (1-3) 
+            1. Celsius to Fahrenheit
+            2. Fahrenheit to Celsius
+            3. Fibonacci sequence"
+    );
+
+    print!("> ");
+
+    match loop {
+        match io::stdin().read_line(&mut input) {
+            Err(_) => {
+                println!("Try again!");
+                continue;
+            }
+            _ => (),
+        }
+
+        match input.trim().parse() {
+            Ok(num) => match num {
+                1 => break num,
+                2 => break num,
+                3 => break num,
+                _ => println!("Please enter a number in range!"),
+            },
+            Err(_) => {
+                println!("Please enter a number!");
+                continue;
+            }
+        }
+    } {
+        1 => do_celsius(),
+        2 => do_fahrenheit(),
+        3 => do_fib(),
+        _ => panic!("How did we get here?"),
+    }
+}
+
+fn do_celsius() {
     let mut user_temperature_in = String::new();
 
     println!("Input a value in celsius:");
@@ -29,11 +71,13 @@ fn do_temp() {
         }
     };
 
-    let temp = celsius_to_fahrenheit(user_temperature_in);
+    let temp = ch3::celsius_to_fahrenheit(user_temperature_in);
 
     println!("{user_temperature_in} C is {temp} fahrenheit.");
-    println!("Going back: {} C", fahrenheit_to_celsius(temp));
+    println!("Going back: {} C", ch3::fahrenheit_to_celsius(temp));
+}
 
+fn do_fahrenheit() {
     let mut user_temperature_in = String::new();
 
     println!("Input a value in fahrenheit:");
@@ -57,10 +101,13 @@ fn do_temp() {
         }
     };
 
-    let temp = fahrenheit_to_celsius(user_temperature_in);
+    let temp = ch3::fahrenheit_to_celsius(user_temperature_in);
 
     println!("{user_temperature_in} fahrenheit is {temp} celsius.");
-    println!("Going back: {} fahrenheit", celsius_to_fahrenheit(temp));
+    println!(
+        "Going back: {} fahrenheit",
+        ch3::celsius_to_fahrenheit(temp)
+    );
 }
 
 fn do_fib() {
@@ -88,26 +135,6 @@ fn do_fib() {
     };
 
     for x in 1..=user_fib_in {
-        println!("fib({x}): {}", fib(x));
+        println!("fib({x}): {}", ch3::fib(x));
     }
-}
-
-fn fahrenheit_to_celsius(f: f32) -> f32 {
-    (f - 32f32) * 5f32 / 9f32
-}
-
-fn celsius_to_fahrenheit(c: f32) -> f32 {
-    c * 9f32 / 5f32 + 32f32
-}
-
-fn fib(n: u8) -> u128 {
-    let mut ab = (0, 1);
-    let mut c = 0;
-
-    for _ in 1..n {
-        c = ab.0 + ab.1;
-        ab.0 = ab.1;
-        ab.1 = c;
-    }
-    c
 }
