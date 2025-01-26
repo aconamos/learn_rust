@@ -73,7 +73,11 @@ pub fn department() {
                     .or_insert(vec![user]);
             }
             Operation::Query(dept) => {
-                println!("{:?}", map.get_key_value(&dept))
+                println!("{:?}", {
+                    let mut map = map.get(&dept).unwrap_or(&vec!["empty".to_string()]).clone();
+                    map.sort();
+                    map
+                });
             }
             Operation::List => {
                 println!("{:#?}", map)
