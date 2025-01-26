@@ -51,7 +51,7 @@ pub fn department() {
     let mut map = HashMap::<String, Vec<String>>::new();
 
     loop {
-        println!("Enter operation (Valid operations: add user to dept, query dept, list): ");
+        println!("Enter operation (Valid operations: add user to dept, remove user from dept, query dept, list): ");
 
         let mut user_input = String::new();
 
@@ -104,32 +104,26 @@ pub fn department() {
 fn parse_op(inp: &String) -> Result<Operation, String> {
     let mut parts = inp.split_whitespace();
 
-    let op = match parts.next() {
-        Some(val) => val,
-        None => return Err("Error parsing operation!".to_string()),
-    };
-
-    let op = op.to_lowercase();
+    let op = parts
+        .next()
+        .ok_or("Error parsing operation!")?
+        .to_lowercase();
 
     let op = op.as_str();
 
     match op {
         "add" | "remove" | "rm" => {
-            let person = match parts.next() {
-                Some(val) => val,
-                None => return Err("Error parsing person for add or remove operation!".to_string()),
-            }
-            .to_string();
+            let person = parts
+                .next()
+                .ok_or("Error parsing person for add or remove operation!")?
+                .to_string();
 
             parts.next();
 
-            let department = match parts.next() {
-                Some(val) => val,
-                None => {
-                    return Err("Error parsing department for add or remove operation!".to_string())
-                }
-            }
-            .to_string();
+            let department = parts
+                .next()
+                .ok_or("Error parsing department for add or remove operation!")?
+                .to_string();
 
             return match op {
                 "add" => Ok(Operation::Add(person, department)),
@@ -138,11 +132,10 @@ fn parse_op(inp: &String) -> Result<Operation, String> {
             };
         }
         "query" => {
-            let department = match parts.next() {
-                Some(val) => val,
-                None => return Err("Error parsing department for query operation!".to_string()),
-            }
-            .to_string();
+            let department = parts
+                .next()
+                .ok_or("Error parsing department for query operation!")?
+                .to_string();
 
             return Ok(Operation::Query(department));
         }
