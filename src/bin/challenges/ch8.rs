@@ -69,25 +69,39 @@ pub fn department() {
         match op {
             Operation::Add(user, dept) => {
                 map.entry(dept)
-                    .and_modify(|v| v.push(user.clone()))
+                    .and_modify(|v| {
+                        let ind = match v.binary_search(&user) {
+                            Ok(val) => val,
+                            Err(val) => val,
+                        };
+                        v.insert(ind, user.clone())
+                    })
                     .or_insert(vec![user]);
             }
+            Operation::Remove(user, dept) => {
+                let map = map
+                    .get_mut(&dept)
+                    .expect("Department should be valid! Giving up...");
+
+                if let Ok(i) = map.binary_search(&user) {
+                    map.remove(i);
+                }
+            }
             Operation::Query(dept) => {
-                println!("{:?}", {
-                    let mut map = map.get(&dept).unwrap_or(&vec!["empty".to_string()]).clone();
-                    map.sort();
-                    map
-                });
+                println!(
+                    "{:?}",
+                    map.get(&dept)
+                        .unwrap_or(&vec!["No such department!".to_string()])
+                );
             }
             Operation::List => {
                 println!("{:#?}", map)
             }
-            _ => return,
         }
     }
 }
 
-fn parse_op(mut inp: &String) -> Result<Operation, String> {
+fn parse_op(inp: &String) -> Result<Operation, String> {
     let mut parts = inp.split_whitespace();
 
     let op = match parts.next() {
@@ -95,11 +109,15 @@ fn parse_op(mut inp: &String) -> Result<Operation, String> {
         None => return Err("Error parsing operation!".to_string()),
     };
 
-    match op.to_lowercase().as_str() {
-        "add" => {
+    let op = op.to_lowercase();
+
+    let op = op.as_str();
+
+    match op {
+        "add" | "remove" | "rm" => {
             let person = match parts.next() {
                 Some(val) => val,
-                None => return Err("Error parsing person for add operation!".to_string()),
+                None => return Err("Error parsing person for add or remove operation!".to_string()),
             }
             .to_string();
 
@@ -107,28 +125,17 @@ fn parse_op(mut inp: &String) -> Result<Operation, String> {
 
             let department = match parts.next() {
                 Some(val) => val,
-                None => return Err("Error parsing department for add operation!".to_string()),
+                None => {
+                    return Err("Error parsing department for add or remove operation!".to_string())
+                }
             }
             .to_string();
 
-            return Ok(Operation::Add(person, department));
-        }
-        "remove" | "rm" => {
-            let person = match parts.next() {
-                Some(val) => val,
-                None => return Err("Error parsing person for remove operation!".to_string()),
-            }
-            .to_string();
-
-            parts.next();
-
-            let department = match parts.next() {
-                Some(val) => val,
-                None => return Err("Error parsing department for remove operation!".to_string()),
-            }
-            .to_string();
-
-            return Ok(Operation::Remove(person, department));
+            return match op {
+                "add" => Ok(Operation::Add(person, department)),
+                "remove" | "rm" => Ok(Operation::Remove(person, department)),
+                _ => panic!("This shouldn't be reached!"),
+            };
         }
         "query" => {
             let department = match parts.next() {
