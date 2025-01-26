@@ -2,9 +2,10 @@ use std::io;
 
 mod challenges {
     pub mod ch3;
+    pub mod ch8;
 }
 
-use challenges::ch3;
+use challenges::{ch3, ch8};
 
 fn main() {
     let mut input = String::new();
@@ -13,15 +14,17 @@ fn main() {
         "Enter a challenge function: (1-3) 
             1. Celsius to Fahrenheit
             2. Fahrenheit to Celsius
-            3. Fibonacci sequence"
+            3. Fibonacci sequence
+            4. List of integers stats
+            5. Pig Latin
+            6. Company department interface"
     );
-
-    print!("> ");
 
     match loop {
         match io::stdin().read_line(&mut input) {
             Err(_) => {
                 println!("Try again!");
+                input.clear();
                 continue;
             }
             _ => (),
@@ -29,13 +32,16 @@ fn main() {
 
         match input.trim().parse() {
             Ok(num) => match num {
-                1 => break num,
-                2 => break num,
-                3 => break num,
-                _ => println!("Please enter a number in range!"),
+                1..=6 => break num,
+                _ => {
+                    println!("Please enter a number in range!");
+                    input.clear();
+                    continue;
+                }
             },
             Err(_) => {
                 println!("Please enter a number!");
+                input.clear();
                 continue;
             }
         }
@@ -43,6 +49,9 @@ fn main() {
         1 => do_celsius(),
         2 => do_fahrenheit(),
         3 => do_fib(),
+        4 => do_stats(),
+        5 => do_pig_latin(),
+        6 => ch8::department(),
         _ => panic!("How did we get here?"),
     }
 }
@@ -137,4 +146,15 @@ fn do_fib() {
     for x in 1..=user_fib_in {
         println!("fib({x}): {}", ch3::fib(x));
     }
+}
+
+fn do_stats() {
+    println!(
+        "{:?}",
+        ch8::median_mode(&vec![4, 8, 1, 9, 4, 3, 0, 10, 9, 5])
+    );
+}
+
+fn do_pig_latin() {
+    println!("{}", ch8::pig_latin(&"words by the ocean".to_string()))
 }
