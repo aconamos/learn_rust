@@ -1,16 +1,21 @@
-fn main() {
-    use std::collections::HashMap;
+use std::fmt::Display;
 
-    let field_name = String::from("Favorite color");
-    let field_value = String::from("Blue");
+struct Shit<'a> {
+    poop_size: u32,
+    poop_type: &'a str,
+}
 
-    let mut map = HashMap::new();
-    map.insert(field_name, field_value);
-    map.insert("Least favorite color".to_string(), "Yellow".to_string());
-
-    println!("{:?}", map);
-
-    for (k, v) in &map {
-        println!("{} / {}", k, v);
+impl Display for Shit<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Shit {}, size {}", self.poop_type, self.poop_size)
     }
+}
+
+fn main() {
+    let my_poopie = Shit {
+        poop_size: 5,
+        poop_type: "Shitty poopy shit",
+    };
+
+    println!("{}", my_poopie);
 }
