@@ -9,6 +9,19 @@ enum InputStream {
     StdInStream(Stdin), // TODO: Refactor to use anything implementing the Read trait
 }
 
+impl InputStream {
+    fn to_string(self) -> Result<String, Box<dyn Error>> {
+        match self {
+            InputStream::FilePath(str) => Ok(fs::read_to_string(str)?),
+            InputStream::StdInStream(mut str) => {
+                let mut contents = String::new();
+                str.read_to_string(&mut contents)?;
+                Ok(contents)
+            }
+        }
+    }
+}
+
 pub struct Config {
     query: String,
     input: InputStream,
@@ -47,14 +60,7 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let contents = match config.input {
-        InputStream::FilePath(str) => fs::read_to_string(str)?,
-        InputStream::StdInStream(mut str) => {
-            let mut contents = String::new();
-            str.read_to_string(&mut contents)?;
-            contents
-        }
-    };
+    let contents = config.input.to_string()?;
 
     for line in search(&config.query, &contents) {
         println!("{line}");
