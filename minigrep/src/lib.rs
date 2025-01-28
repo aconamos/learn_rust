@@ -1,4 +1,5 @@
 use std::{
+    env,
     error::Error,
     fs,
     io::{Read, Stdin},
@@ -25,6 +26,7 @@ impl InputStream {
 pub struct Config {
     query: String,
     input: InputStream,
+    ignore_case: bool,
 }
 
 impl Config {
@@ -37,6 +39,8 @@ impl Config {
                 InputStream::StdInStream(std::io::stdin()),
             ))
         } else {
+            // Usually, you would be able to pass in a '-' to indicate to use stdin anyways.
+            // This program doesn't implement that because I'm lazy.
             Ok(Config::from(
                 &args[1],
                 InputStream::FilePath(args[2].clone()),
@@ -45,16 +49,22 @@ impl Config {
     }
 
     fn from(query: &String, input: InputStream) -> Config {
+        let ignore_case = env::var("IGNORE_CASE").is_ok();
+
         Config {
             query: query.clone(),
             input,
+            ignore_case,
         }
     }
 
     pub fn from_str(query: &String, input: &String) -> Config {
+        let ignore_case = env::var("IGNORE_CASE").is_ok();
+
         Config {
             query: query.clone(),
             input: InputStream::FilePath(input.clone()),
+            ignore_case,
         }
     }
 }
@@ -62,7 +72,13 @@ impl Config {
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents = config.input.to_string()?;
 
-    for line in search(&config.query, &contents) {
+    let results = if config.ignore_case {
+        search_case_insensitive(&config.query, &contents)
+    } else {
+        search(&config.query, &contents)
+    };
+
+    for line in results {
         println!("{line}");
     }
 
@@ -74,6 +90,20 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
 
     for line in contents.lines() {
         if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+
+    let query = query.to_lowercase();
+
+    for line in contents.lines() {
+        if line.to_lowercase().contains(&query) {
             results.push(line);
         }
     }
@@ -94,5 +124,20 @@ safe, fast, productive.
 Pick three.";
 
         assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+    }
+
+    #[test]
+    fn case_insensitive() {
+        let query = "rUsT";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.
+Trust me.";
+
+        assert_eq!(
+            vec!["Rust:", "Trust me."],
+            search_case_insensitive(query, contents)
+        );
     }
 }
