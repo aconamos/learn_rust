@@ -1,21 +1,11 @@
-use std::fmt::Display;
+use std::thread;
 
-struct Shit<'a> {
-    poop_size: u32,
-    poop_type: &'a str,
-}
-
-impl Display for Shit<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Shit {}, size {}", self.poop_type, self.poop_size)
-    }
-}
+pub const TURBOFISH_HEAD: &'static str = "::<>";
 
 fn main() {
-    let my_poopie = Shit {
-        poop_size: 5,
-        poop_type: "Shitty poopy shit",
-    };
+    let v1 = vec![1, 2, 3];
 
-    println!("{}", my_poopie);
+    let v2: Vec<_> = v1.iter().map(|x| x + 1).collect();
+
+    assert_eq!(v2, vec![2, 3, 4]);
 }
