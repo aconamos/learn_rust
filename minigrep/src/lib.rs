@@ -5,6 +5,7 @@ use std::{
     io::{Read, Stdin},
 };
 
+#[derive(Debug)]
 enum InputStream {
     FilePath(String),
     StdInStream(Stdin), // TODO: Refactor to use anything implementing the Read trait
@@ -23,6 +24,7 @@ impl InputStream {
     }
 }
 
+#[derive(Debug)]
 pub struct Config {
     query: String,
     input: InputStream,
@@ -30,42 +32,24 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_args_slice(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 2 {
-            Err("Too few arguments!")
-        } else if args.len() < 3 {
-            Ok(Config::from(
-                &args[1],
-                InputStream::StdInStream(std::io::stdin()),
-            ))
-        } else {
-            // Usually, you would be able to pass in a '-' to indicate to use stdin anyways.
-            // This program doesn't implement that because I'm lazy.
-            Ok(Config::from(
-                &args[1],
-                InputStream::FilePath(args[2].clone()),
-            ))
-        }
-    }
+    pub fn from_args(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        let query = args.nth(1).ok_or("Couldn't extract thing!")?;
 
-    fn from(query: &String, input: InputStream) -> Config {
+        let input = match args.next() {
+            Some(str) => match str.as_str() {
+                "-" => InputStream::StdInStream(std::io::stdin()),
+                _ => InputStream::FilePath(str),
+            },
+            _ => InputStream::StdInStream(std::io::stdin()),
+        };
+
         let ignore_case = env::var("IGNORE_CASE").is_ok();
 
-        Config {
-            query: query.clone(),
+        Ok(Config {
+            query,
             input,
             ignore_case,
-        }
-    }
-
-    pub fn from_str(query: &String, input: &String) -> Config {
-        let ignore_case = env::var("IGNORE_CASE").is_ok();
-
-        Config {
-            query: query.clone(),
-            input: InputStream::FilePath(input.clone()),
-            ignore_case,
-        }
+        })
     }
 }
 
@@ -86,29 +70,16 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-
-    for line in contents.lines() {
-        if line.contains(query) {
-            results.push(line);
-        }
-    }
-
-    results
+    contents.lines().filter(|s| s.contains(query)).collect()
 }
 
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-
     let query = query.to_lowercase();
 
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            results.push(line);
-        }
-    }
-
-    results
+    contents
+        .lines()
+        .filter(|s| s.to_lowercase().contains(&query))
+        .collect()
 }
 
 #[cfg(test)]
