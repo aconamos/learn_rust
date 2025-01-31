@@ -22,6 +22,17 @@ pub fn median_mode(nums: &Vec<i32>) -> (i32, i32) {
     (median, mode)
 }
 
+pub fn median_anything<'a, T>(list: &Vec<&'a T>) -> &'a T
+where
+    T: Ord,
+{
+    let mut list: Vec<&T> = list.clone();
+
+    list.sort();
+
+    list.get(list.len() / 2).expect("List shouldn't be empty!")
+}
+
 pub fn pig_latin(words: &String) -> String {
     let mut new_sentence = String::new();
 
@@ -141,5 +152,24 @@ fn parse_op(inp: &String) -> Result<Operation, String> {
         }
         "list" => Ok(Operation::List),
         typ => return Err(format!("Error parsing operation type {typ}!").to_string()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_median_generic() {
+        let my_vec = vec![&1, &2, &6, &5, &4, &3, &7];
+
+        assert_eq!(median_anything(&my_vec), &4);
+    }
+
+    #[test]
+    fn test_wrong_median_generic() {
+        let my_vec = vec![&1, &2, &6, &5, &4, &3, &7];
+
+        assert_ne!(median_anything(&my_vec), &2)
     }
 }
